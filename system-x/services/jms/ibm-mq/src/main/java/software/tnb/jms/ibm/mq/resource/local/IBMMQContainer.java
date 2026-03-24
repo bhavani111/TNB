@@ -1,5 +1,9 @@
 package software.tnb.jms.ibm.mq.resource.local;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import software.tnb.common.utils.IOUtils;
 import software.tnb.jms.ibm.mq.service.IBMMQ;
 
@@ -19,6 +23,7 @@ import java.util.Objects;
 import java.util.Set;
 
 public class IBMMQContainer extends GenericContainer<IBMMQContainer> {
+    private static final Logger LOG = LoggerFactory.getLogger(IBMMQContainer.class);
     private static final Path mqscCommandFilePath = Paths.get("target/" + IBMMQ.MQSC_COMMAND_FILE_NAME);
     private static final Path keysFolderPath = Paths.get("target/keys");
 
@@ -36,9 +41,13 @@ public class IBMMQContainer extends GenericContainer<IBMMQContainer> {
                 Files.copy(privateKey, keyFile, StandardCopyOption.REPLACE_EXISTING);
                 final Path certFile = Paths.get(keysFolderPath.toAbsolutePath().toString(), "key.crt");
                 Files.copy(publicKey, certFile, StandardCopyOption.REPLACE_EXISTING);
-                Set<PosixFilePermission> perms = PosixFilePermissions.fromString("rw-r--r--");
-                Files.setPosixFilePermissions(keyFile, perms);
-                Files.setPosixFilePermissions(certFile, perms);
+                try {
+                    Set<PosixFilePermission> perms = PosixFilePermissions.fromString("rw-r--r--");
+                    Files.setPosixFilePermissions(keyFile, perms);
+                    Files.setPosixFilePermissions(certFile, perms);
+                } catch (UnsupportedOperationException e) {
+                    LOG.warn("On Windows POSIX permissions are not applicable", e);
+                }
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
