@@ -24,7 +24,12 @@ public abstract class DB2 extends SQL {
         return Map.of(
             "LICENSE", "accept",
             "DB2INST1_PASSWORD", account().password(),
-            "DBNAME", account().database()
+            "DBNAME", account().database(),
+            // Fix for RHEL 9 + rootless Podman: disable anonymous volumes which require mount with suid
+            // See https://github.com/quarkusio/quarkus/issues/31253#issuecomment-3131458759
+            "PERSISTENT_HOME", "false",
+            "ARCHIVE_LOGS", "false",
+            "AUTOCONFIG", "false"
         );
     }
 
